@@ -1,923 +1,247 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
-<head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Our Playwright Testing Journey</title>
-  <style>
-    html {
-      color: #1a1a1a;
-      background-color: #fdfdfd;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 36em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 12px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      html {
-        background-color: white;
-      }
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    a {
-      color: #1a1a1a;
-    }
-    a:visited {
-      color: #1a1a1a;
-    }
-    img {
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
-      font-size: 85%;
-      margin: 0;
-      hyphens: manual;
-    }
-    pre {
-      margin: 1em 0;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    .sourceCode {
-     background-color: transparent;
-     overflow: visible;
-    }
-    hr {
-      background-color: #1a1a1a;
-      border: none;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    th {
-      border-top: 1px solid #1a1a1a;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-    /* CSS for syntax highlighting */
-    pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { line-height: 1.25; }
-    pre > code.sourceCode > span:empty { height: 1.2em; }
-    .sourceCode { overflow: visible; }
-    code.sourceCode > span { color: inherit; text-decoration: inherit; }
-    div.sourceCode { margin: 1em 0; }
-    pre.sourceCode { margin: 0; }
-    @media screen {
-    div.sourceCode { overflow: auto; }
-    }
-    @media print {
-    pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-    }
-    pre.numberSource code
-      { counter-reset: source-line 0; }
-    pre.numberSource code > span
-      { position: relative; left: -4em; counter-increment: source-line; }
-    pre.numberSource code > span > a:first-child::before
-      { content: counter(source-line);
-        position: relative; left: -1em; text-align: right; vertical-align: baseline;
-        border: none; display: inline-block;
-        -webkit-touch-callout: none; -webkit-user-select: none;
-        -khtml-user-select: none; -moz-user-select: none;
-        -ms-user-select: none; user-select: none;
-        padding: 0 4px; width: 4em;
-        color: #aaaaaa;
-      }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-    div.sourceCode
-      {   }
-    @media screen {
-    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-    }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { color: #008000; } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { color: #008000; font-weight: bold; } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-  </style>
-</head>
-<body>
-<header id="title-block-header">
-<h1 class="title">Our Playwright Testing Journey</h1>
-</header>
-<h1 id="our-playwright-testing-journey-from-chaos-to-structure">Our
-Playwright Testing Journey — From Chaos to Structure</h1>
-<h2 id="the-application">1. The Application</h2>
-<p>Before diving into the “why,” let’s ground everything in a real
-example we’ll use throughout this page.</p>
-<p><strong>Student List → Edit Form → Thank You</strong> — a 3-page
-flow:</p>
-<table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Page</th>
-<th>Purpose</th>
-<th>Key Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Student List</td>
-<td>Shows up to 5 students in the class</td>
-<td>Clicking a student navigates to Edit Form with that student’s data
-prefilled</td>
-</tr>
-<tr class="even">
-<td>Edit Form</td>
-<td>Shows prefilled student details</td>
-<td>5 mandatory fields: First Name, Last Name, Age, Class (dropdown),
-Class Teacher Name. Next button is <strong>always enabled</strong> — a
-missing mandatory field shows a <strong>top-of-form error
-banner</strong> instead of disabling the button</td>
-</tr>
-<tr class="odd">
-<td>Thank You</td>
-<td>Confirmation screen</td>
-<td>No data persistence — this is a UI-flow-only confirmation</td>
-</tr>
-</tbody>
-</table>
-<p>If a user re-selects the same student after navigating back, the form
-<strong>always resets</strong> to original prefilled values — no
-unsaved-edit persistence.</p>
-<p><em>(Full breakdown of this application is available in the companion
-reference doc.)</em></p>
-<hr />
-<h2 id="the-problem-writing-tests-without-a-plan">2. The Problem —
-Writing Tests Without a Plan</h2>
-<p>Here’s what happens when we write Playwright tests for this
-application <strong>without any structure</strong> — just opening the
-browser, using codegen or writing locators inline, one spec at a
-time.</p>
-<div class="sourceCode" id="cb1"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;edit student and submit&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students&#39;</span>)<span class="op">;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByText</span>(<span class="st">&#39;Rahul Verma&#39;</span>)<span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">waitForTimeout</span>(<span class="dv">1000</span>)<span class="op">;</span> <span class="co">// wait for form to load</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByLabel</span>(<span class="st">&#39;First Name&#39;</span>)<span class="op">.</span><span class="fu">fill</span>(<span class="st">&#39;Rahul&#39;</span>)<span class="op">;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByLabel</span>(<span class="st">&#39;Age&#39;</span>)<span class="op">.</span><span class="fu">fill</span>(<span class="st">&#39;16&#39;</span>)<span class="op">;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">locator</span>(<span class="st">&#39;.class-dropdown&#39;</span>)<span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByText</span>(<span class="st">&#39;10A&#39;</span>)<span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByRole</span>(<span class="st">&#39;button&#39;</span><span class="op">,</span> { name<span class="op">:</span> <span class="st">&#39;Next&#39;</span> })<span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">waitForTimeout</span>(<span class="dv">1000</span>)<span class="op">;</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">expect</span>(page<span class="op">.</span><span class="fu">getByText</span>(<span class="st">&#39;Thank you!&#39;</span>))<span class="op">.</span><span class="fu">toBeVisible</span>()<span class="op">;</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;shows error when mandatory field missing&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students&#39;</span>)<span class="op">;</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByText</span>(<span class="st">&#39;Rahul Verma&#39;</span>)<span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">waitForTimeout</span>(<span class="dv">1000</span>)<span class="op">;</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByLabel</span>(<span class="st">&#39;First Name&#39;</span>)<span class="op">.</span><span class="fu">fill</span>(<span class="st">&#39;&#39;</span>)<span class="op">;</span> <span class="co">// clear mandatory field</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByRole</span>(<span class="st">&#39;button&#39;</span><span class="op">,</span> { name<span class="op">:</span> <span class="st">&#39;Next&#39;</span> })<span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">expect</span>(page<span class="op">.</span><span class="fu">getByText</span>(<span class="st">&#39;Please fill all mandatory fields&#39;</span>))<span class="op">.</span><span class="fu">toBeVisible</span>()<span class="op">;</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;edit teacher name and submit&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students&#39;</span>)<span class="op">;</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByText</span>(<span class="st">&#39;Priya Shah&#39;</span>)<span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">waitForTimeout</span>(<span class="dv">1000</span>)<span class="op">;</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByLabel</span>(<span class="st">&#39;Class Teacher Name&#39;</span>)<span class="op">.</span><span class="fu">fill</span>(<span class="st">&#39;Mrs. Iyer&#39;</span>)<span class="op">;</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">getByRole</span>(<span class="st">&#39;button&#39;</span><span class="op">,</span> { name<span class="op">:</span> <span class="st">&#39;Next&#39;</span> })<span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">waitForTimeout</span>(<span class="dv">1000</span>)<span class="op">;</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">expect</span>(page<span class="op">.</span><span class="fu">getByText</span>(<span class="st">&#39;Thank you!&#39;</span>))<span class="op">.</span><span class="fu">toBeVisible</span>()<span class="op">;</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
-<p><strong>What’s wrong here?</strong></p>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Problem</th>
-<th>Where You See It</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Duplicated locators</strong></td>
-<td><code>page.getByText('Rahul Verma')</code>, the Next button, the
-Thank You text — all typed out fresh, in every test, by whoever happened
-to write it</td>
-</tr>
-<tr class="even">
-<td><strong>Duplicated sequences</strong></td>
-<td>“Click student → wait → interact with form → click Next → wait” is
-repeated in all 3 tests, nearly identical</td>
-</tr>
-<tr class="odd">
-<td><strong>Inconsistent locator strategy</strong></td>
-<td>Mixing <code>getByText</code>, <code>getByLabel</code>,
-<code>getByRole</code>, and a raw CSS class
-(<code>.class-dropdown</code>) with no rule for which to use when</td>
-</tr>
-<tr class="even">
-<td><strong>Hard waits</strong></td>
-<td><code>waitForTimeout(1000)</code> sprinkled in, guessing how long
-the UI needs — flaky if the app is ever slower, wasteful if it’s
-faster</td>
-</tr>
-<tr class="odd">
-<td><strong>No structure for reuse</strong></td>
-<td>If the “select a student and reach the edit form” sequence is needed
-by a 4th test tomorrow, it gets copy-pasted again</td>
-</tr>
-<tr class="even">
-<td><strong>Hard to debug failures</strong></td>
-<td>If this test fails, the report just says “test failed” — no
-indication of which part (selecting student? filling form? submitting?)
-broke</td>
-</tr>
-</tbody>
-</table>
-<p>With 3 tests, this is annoying. With 50 pages and 500 tests, this
-becomes unmaintainable — nobody can safely change a locator without
-hunting through dozens of files.</p>
-<h3 id="folder-structure-so-far">Folder Structure So Far</h3>
-<p>There isn’t one. Everything — element lookups, waits, sequences,
-assertions — lives inline, directly inside a single spec file:</p>
-<pre><code>tests/
-└── specs/
-    └── editForm.spec.ts   ← everything lives here: locators, waits, sequences, assertions, all mixed together</code></pre>
-<p>This is the starting point we’re moving away from.</p>
-<hr />
-<h2 id="the-destination-what-were-aiming-for">3. The Destination — What
-We’re Aiming For</h2>
-<p>Here’s the <strong>same three scenarios</strong>, after applying the
-structure we’ll walk through in this page:</p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// specs/editForm.spec.ts</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { test } <span class="im">from</span> <span class="st">&#39;@playwright/test&#39;</span><span class="op">;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { selectStudentStep } <span class="im">from</span> <span class="st">&#39;../steps/studentList/selectStudent.step&#39;</span><span class="op">;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { editStudentDetailsStep } <span class="im">from</span> <span class="st">&#39;../steps/editForm/editStudentDetails.step&#39;</span><span class="op">;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { submitEditFormStep } <span class="im">from</span> <span class="st">&#39;../steps/editForm/submitEditForm.step&#39;</span><span class="op">;</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { verifyThankYouStep } <span class="im">from</span> <span class="st">&#39;../steps/thankYou/verifyThankYou.step&#39;</span><span class="op">;</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;edit student and submit successfully&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students&#39;</span>)<span class="op">;</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">selectStudentStep</span>(page<span class="op">,</span> <span class="st">&#39;Rahul Verma&#39;</span>)<span class="op">;</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">editStudentDetailsStep</span>(page<span class="op">,</span> { age<span class="op">:</span> <span class="st">&#39;16&#39;</span><span class="op">,</span> class<span class="op">:</span> <span class="st">&#39;10A&#39;</span> })<span class="op">;</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">submitEditFormStep</span>(page)<span class="op">;</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">verifyThankYouStep</span>(page)<span class="op">;</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;shows error when mandatory field missing&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students&#39;</span>)<span class="op">;</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">selectStudentStep</span>(page<span class="op">,</span> <span class="st">&#39;Rahul Verma&#39;</span>)<span class="op">;</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">editStudentDetailsStep</span>(page<span class="op">,</span> { firstName<span class="op">:</span> <span class="st">&#39;&#39;</span> })<span class="op">;</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">submitEditFormStep</span>(page)<span class="op">;</span> <span class="co">// stays on Edit Form, shows error banner</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;edit teacher name and submit&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students&#39;</span>)<span class="op">;</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">selectStudentStep</span>(page<span class="op">,</span> <span class="st">&#39;Priya Shah&#39;</span>)<span class="op">;</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">editStudentDetailsStep</span>(page<span class="op">,</span> { classTeacherName<span class="op">:</span> <span class="st">&#39;Mrs. Iyer&#39;</span> })<span class="op">;</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">submitEditFormStep</span>(page)<span class="op">;</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">verifyThankYouStep</span>(page)<span class="op">;</span></span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
-<p><strong>What changed?</strong> - No raw locators anywhere in the spec
-- No hard waits — each step handles its own waiting internally, using
-proper condition-based waiting - No duplicated sequences — each step is
-defined once, reused across all 3 tests - Every step name shows up
-individually in the Playwright report/trace, via
-<code>test.step()</code> - Editing any single field is just a different
-argument to <code>editStudentDetailsStep()</code> — not a new test
-file</p>
-<p>This is the target. The rest of this page explains
-<strong>how</strong> we get from the chaos in Section 2 to the clarity
-in Section 3.</p>
-<h3 id="folder-structure-so-far-1">Folder Structure So Far</h3>
-<p>The spec now imports from a <code>steps/</code> folder instead of
-containing everything inline. We haven’t unpacked what’s inside
-<code>steps/</code> yet — that’s Section 4 — but the shape is already
-emerging:</p>
-<pre><code>tests/
-├── steps/
-│   └── (contents explained in Section 4)
-└── specs/
-    └── editForm.spec.ts   ← now just a sequence of step calls, no raw logic</code></pre>
-<hr />
-<h2 id="a.-a-half-measure-the-one-big-helper-file-trap">3A. A
-Half-Measure — The “One Big Helper File” Trap</h2>
-<p>It’s worth calling this out explicitly, because it’s an easy trap to
-fall into: you can get a spec that <em>looks</em> exactly like Section 3
-— clean, readable, no raw locators — while still doing it the wrong way
-underneath, by putting everything into <strong>one large helper
-file</strong>.</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// helpers.ts — everything, for every page, in one file</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> selectStudentStep <span class="op">=</span> <span class="kw">async</span> (page<span class="op">,</span> name) <span class="kw">=&gt;</span> { <span class="co">/* ... */</span> }<span class="op">;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> editStudentDetailsStep <span class="op">=</span> <span class="kw">async</span> (page<span class="op">,</span> fields) <span class="kw">=&gt;</span> { <span class="co">/* ... */</span> }<span class="op">;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> submitEditFormStep <span class="op">=</span> <span class="kw">async</span> (page) <span class="kw">=&gt;</span> { <span class="co">/* ... */</span> }<span class="op">;</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> verifyThankYouStep <span class="op">=</span> <span class="kw">async</span> (page) <span class="kw">=&gt;</span> { <span class="co">/* ... */</span> }<span class="op">;</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> selectContactFormFields <span class="op">=</span> <span class="kw">async</span> (page<span class="op">,</span> data) <span class="kw">=&gt;</span> { <span class="co">/* ... */</span> }<span class="op">;</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> mockCountryListApi <span class="op">=</span> <span class="kw">async</span> (page) <span class="kw">=&gt;</span> { <span class="co">/* ... */</span> }<span class="op">;</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">// ...and 40 more functions, for every page in the app, all in this one file</span></span></code></pre></div>
-<p>The spec importing from this file looks identical to the “good”
-version — which is exactly what makes this trap easy to miss in a quick
-review.</p>
-<p><strong>Why this is still a problem, even though the spec looks
-clean:</strong></p>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Problem</th>
-<th>Why It Hurts</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>No separation of concerns</strong></td>
-<td>Locators, page interactions, and multi-step sequences are all mixed
-together in one file — you can’t tell what’s a pure element reference
-vs. a composed flow step just by looking at an import</td>
-</tr>
-<tr class="even">
-<td><strong>Merge conflicts</strong></td>
-<td>Every team editing any page’s test logic is editing the <em>same
-file</em> — constant conflicts as the app grows</td>
-</tr>
-<tr class="odd">
-<td><strong>No ownership boundary</strong></td>
-<td>Nobody “owns” this file; it becomes a dumping ground where nobody
-wants to clean up someone else’s addition</td>
-</tr>
-<tr class="even">
-<td><strong>Doesn’t scale</strong></td>
-<td>A 50-page application means a helper file with hundreds of exports —
-impossible to navigate, search, or safely refactor</td>
-</tr>
-<tr class="odd">
-<td><strong>Locators aren’t reusable on their own</strong></td>
-<td>If a locator is buried inside a helper function, another test can’t
-reuse <em>just</em> the element reference without also getting the
-behavior wrapped around it</td>
-</tr>
-</tbody>
-</table>
-<p><strong>The fix is exactly the four-layer split described in Section
-4</strong> — <code>locators/</code>, <code>actions/</code>,
-<code>steps/</code>, grouped by page. The clean spec in Section 3 is
-only genuinely “done” once the code behind it is also properly separated
-— not just hidden inside one large file that happens to export
-nicely-named functions.</p>
-<hr />
-<h2 id="how-we-get-there-reading-top-down">4. How We Get There — Reading
-Top-Down</h2>
-<p>We’ll explain this the same way you’d actually read the codebase:
-start at the spec (what you see first), then peel back one layer at a
-time to see how it’s built.</p>
-<pre><code>Spec  →  Steps  →  Actions  →  Locators
-(flow)   (sequence) (interaction) (element)</code></pre>
-<h3 id="spec-represents-the-flow">4.1 Spec — Represents the Flow</h3>
-<p><strong>The spec file <em>is</em> the flow.</strong> The spec’s body,
-read top to bottom, is the sequence of operations for that scenario:</p>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;edit student and submit successfully&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students&#39;</span>)<span class="op">;</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">selectStudentStep</span>(page<span class="op">,</span> <span class="st">&#39;Rahul Verma&#39;</span>)<span class="op">;</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">editStudentDetailsStep</span>(page<span class="op">,</span> { age<span class="op">:</span> <span class="st">&#39;16&#39;</span><span class="op">,</span> class<span class="op">:</span> <span class="st">&#39;10A&#39;</span> })<span class="op">;</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">submitEditFormStep</span>(page)<span class="op">;</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">verifyThankYouStep</span>(page)<span class="op">;</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
-<p>A spec’s job is to decide <strong>what order things happen
-in</strong> for this scenario. It has no idea <em>how</em>
-<code>editStudentDetailsStep</code> fills the form — that’s
-intentionally hidden from it.</p>
-<h3 id="steps-reusable-named-parameterized-sequences">4.2 Steps —
-Reusable, Named, Parameterized Sequences</h3>
-<p>A step composes one or more actions into a single reusable unit that
-a spec can call by name:</p>
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// steps/editForm/editStudentDetails.step.ts</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> editStudentDetailsStep <span class="op">=</span> <span class="kw">async</span> (</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  page<span class="op">:</span> Page<span class="op">,</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  fieldUpdates<span class="op">:</span> <span class="bu">Partial</span><span class="op">&lt;</span>{ firstName<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> lastName<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> age<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> class<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> classTeacherName<span class="op">:</span> <span class="dt">string</span> }<span class="op">&gt;</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>) <span class="kw">=&gt;</span> {</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> { updateField } <span class="op">=</span> <span class="fu">editFormActions</span>(page)<span class="op">;</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> test<span class="op">.</span><span class="fu">step</span>(<span class="st">&#39;Edit student details&#39;</span><span class="op">,</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (<span class="kw">const</span> [field<span class="op">,</span> value] <span class="kw">of</span> <span class="bu">Object</span><span class="op">.</span><span class="fu">entries</span>(fieldUpdates)) {</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">await</span> <span class="fu">updateField</span>(field<span class="op">,</span> value)<span class="op">;</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
-<p><strong>Two rules that matter here:</strong></p>
-<ul>
-<li><strong><code>test.step()</code> lives inside the step
-function</strong>, not re-wrapped in the spec. This means every spec
-that calls <code>editStudentDetailsStep()</code> automatically gets a
-labeled, traceable entry in the report — for free.</li>
-<li><strong>Parameterize instead of duplicating.</strong> Notice
-<code>editStudentDetailsStep</code> takes <em>any combination</em> of
-fields as an argument. This single step covers “edit one field,” “edit
-all fields,” and “clear a mandatory field” — we don’t create
-<code>editFirstName.step.ts</code>, <code>editAge.step.ts</code>,
-<code>clearMandatoryField.step.ts</code> separately. If two scenarios
-differ only by <em>data</em>, they should be one parameterized step, not
-multiple files. Separate step files are only justified when the
-<em>behavior</em> genuinely differs, not just the data.</li>
-</ul>
-<h3 id="actions-page-scoped-interactions">4.3 Actions — Page-Scoped
-Interactions</h3>
-<p>Actions define <em>how</em> to interact with a page’s elements.</p>
-<div class="sourceCode" id="cb9"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// actions/editForm/editForm.actions.ts</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> editFormActions <span class="op">=</span> (page<span class="op">:</span> Page) <span class="kw">=&gt;</span> {</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> locators <span class="op">=</span> <span class="fu">editFormLocators</span>(page)<span class="op">;</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> {</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    updateField<span class="op">:</span> <span class="kw">async</span> (field<span class="op">:</span> <span class="dt">string</span><span class="op">,</span> value<span class="op">:</span> <span class="dt">string</span>) <span class="kw">=&gt;</span> {</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="co">// maps field name to the correct locator and fills/selects it</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    clickNext<span class="op">:</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">await</span> locators<span class="op">.</span><span class="at">nextButton</span><span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    getTopErrorMessage<span class="op">:</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> locators<span class="op">.</span><span class="at">topErrorBanner</span><span class="op">.</span><span class="fu">textContent</span>()<span class="op">;</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
-<p><strong>Why page-scoped, not flow-scoped?</strong> “Editing a field
-on the Edit Form” is a property of that page’s UI — it doesn’t change
-based on which flow brought the user there, or whether the data being
-entered is valid or invalid. The same <code>updateField()</code> action
-handles both the happy path and the missing-mandatory-field scenario —
-only the data passed in differs.</p>
-<p><strong>Why the factory pattern?</strong>
-<code>editFormActions(page)</code> computes <code>locators</code>
-<strong>once</strong> and returns a set of functions that all share it —
-instead of every function separately calling
-<code>editFormLocators(page)</code>, which would repeat that line across
-the file as more actions get added.</p>
-<h3 id="locators-pure-element-references">4.4 Locators — Pure Element
-References</h3>
-<p>The bottom layer. A locator file contains <em>only</em> element
-references — no logic, no clicking, no assertions:</p>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">// locators/editForm/editForm.locators.ts</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> editFormLocators <span class="op">=</span> (page<span class="op">:</span> Page) <span class="kw">=&gt;</span> ({</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  firstNameInput<span class="op">:</span> page<span class="op">.</span><span class="fu">getByLabel</span>(<span class="st">&#39;First Name&#39;</span>)<span class="op">,</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  ageInput<span class="op">:</span> page<span class="op">.</span><span class="fu">getByLabel</span>(<span class="st">&#39;Age&#39;</span>)<span class="op">,</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  classDropdown<span class="op">:</span> page<span class="op">.</span><span class="fu">getByRole</span>(<span class="st">&#39;combobox&#39;</span><span class="op">,</span> { name<span class="op">:</span> <span class="st">&#39;Class&#39;</span> })<span class="op">,</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  classTeacherNameInput<span class="op">:</span> page<span class="op">.</span><span class="fu">getByLabel</span>(<span class="st">&#39;Class Teacher Name&#39;</span>)<span class="op">,</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  nextButton<span class="op">:</span> page<span class="op">.</span><span class="fu">getByRole</span>(<span class="st">&#39;button&#39;</span><span class="op">,</span> { name<span class="op">:</span> <span class="st">&#39;Next&#39;</span> })<span class="op">,</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  topErrorBanner<span class="op">:</span> page<span class="op">.</span><span class="fu">getByText</span>(<span class="st">&#39;Please fill all mandatory fields&#39;</span>)<span class="op">,</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
-<p><strong>Two rules for this layer:</strong></p>
-<ul>
-<li><strong>Pure and flow-agnostic</strong> — a locator has zero
-knowledge of which flow or scenario uses it. It only answers “where is
-this element.”</li>
-<li><strong>Shared vs. page-specific</strong> — if an element (like a
-header) appears on 2+ pages, it goes in <code>locators/shared/</code>,
-not duplicated per page.</li>
-</ul>
-<h3 id="folder-structure-so-far-2">Folder Structure So Far</h3>
-<p>All three layers are now visible, each grouped by page (with
-<code>locators/shared/</code> as the one flat exception):</p>
-<pre><code>tests/
-├── locators/
-│   ├── shared/
-│   │   └── header.locators.ts
-│   ├── studentList/
-│   │   └── studentList.locators.ts
-│   └── editForm/
-│       └── editForm.locators.ts
-│
-├── actions/
-│   ├── studentList/
-│   │   └── studentList.actions.ts
-│   └── editForm/
-│       └── editForm.actions.ts
-│
-├── steps/
-│   ├── studentList/
-│   │   └── selectStudent.step.ts
-│   └── editForm/
-│       ├── editStudentDetails.step.ts
-│       └── submitEditForm.step.ts
-│
-└── specs/
-    ├── studentList.spec.ts
-    └── editForm.spec.ts</code></pre>
-<p>One layer is still missing: how API calls get mocked. That’s
-next.</p>
-<hr />
-<h2 id="api-mocking-base-response-manipulation">5. API Mocking — Base
-Response + Manipulation</h2>
-<p>Beyond UI locators, most flows also depend on API calls — and how we
-mock them needs the same discipline as the rest of the structure.</p>
-<h3 id="the-pattern">The Pattern</h3>
-<ol type="1">
-<li><strong>Define one base/expected response per endpoint, per
-page</strong> — the “default” shape of data that endpoint returns,
-stored as a plain JSON file</li>
-<li><strong>Manipulate that base response</strong> for whatever the
-specific test needs (e.g., remove a field, change a value, simulate an
-error)</li>
-<li><strong>Pass the manipulated response to a method in that page’s
-<code>mockResponse.ts</code></strong> that applies it via Playwright’s
-request interception (<code>page.route()</code>), so the actual network
-response is swapped for our expected one</li>
-</ol>
-<p>A backend call belongs to whichever page consumes it. So instead of
-one mock file per endpoint, each page has exactly <strong>two</strong>
-files: one plain JSON file holding raw data, one <code>.ts</code> file
-holding every API call that page depends on.</p>
-<h3 id="example">Example</h3>
-<p>Edit Form depends on two endpoints — student data and a teacher list
-for a dropdown. Both belong to Edit Form, so both live together:</p>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">mocks/editForm/editForm.mockData.json</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;baseStudentResponse&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;Rahul&quot;</span><span class="fu">,</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;Verma&quot;</span><span class="fu">,</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;age&quot;</span><span class="fu">:</span> <span class="st">&quot;15&quot;</span><span class="fu">,</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;class&quot;</span><span class="fu">:</span> <span class="st">&quot;10A&quot;</span><span class="fu">,</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;classTeacherName&quot;</span><span class="fu">:</span> <span class="st">&quot;Mrs. Iyer&quot;</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;baseTeacherListResponse&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;Mrs. Iyer&quot;</span><span class="ot">,</span> <span class="st">&quot;Mr. Sharma&quot;</span><span class="ot">,</span> <span class="st">&quot;Ms. Rao&quot;</span><span class="ot">]</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">// mocks/editForm/editForm.mockResponse.ts</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { Page } <span class="im">from</span> <span class="st">&#39;@playwright/test&#39;</span><span class="op">;</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> mockData <span class="im">from</span> <span class="st">&#39;./editForm.mockData.json&#39;</span><span class="op">;</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> { baseStudentResponse<span class="op">,</span> baseTeacherListResponse } <span class="op">=</span> mockData<span class="op">;</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> mockStudentApi <span class="op">=</span> <span class="kw">async</span> (page<span class="op">:</span> Page<span class="op">,</span> override<span class="op">:</span> <span class="bu">Partial</span><span class="op">&lt;</span><span class="kw">typeof</span> baseStudentResponse<span class="op">&gt;</span> <span class="op">=</span> {}) <span class="kw">=&gt;</span> {</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">route</span>(<span class="st">&#39;**/api/students/*&#39;</span><span class="op">,</span> (route) <span class="kw">=&gt;</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    route<span class="op">.</span><span class="fu">fulfill</span>({ json<span class="op">:</span> { <span class="op">...</span>baseStudentResponse<span class="op">,</span> <span class="op">...</span>override } })</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> mockTeacherListApi <span class="op">=</span> <span class="kw">async</span> (page<span class="op">:</span> Page<span class="op">,</span> override<span class="op">:</span> <span class="dt">string</span>[] <span class="op">=</span> baseTeacherListResponse) <span class="kw">=&gt;</span> {</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">route</span>(<span class="st">&#39;**/api/teachers&#39;</span><span class="op">,</span> (route) <span class="kw">=&gt;</span> route<span class="op">.</span><span class="fu">fulfill</span>({ json<span class="op">:</span> override }))<span class="op">;</span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
-<blockquote>
-<p>Note: importing <code>.json</code> directly requires
-<code>resolveJsonModule: true</code> in <code>tsconfig.json</code> (on
-by default in most Playwright starter configs — worth confirming in
-ours).</p>
-</blockquote>
-<p><strong>Usage in a step or spec:</strong></p>
-<div class="sourceCode" id="cb14"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// default/base response — no override needed</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">mockStudentApi</span>(page)<span class="op">;</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">// this test needs a student with a missing class teacher</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">mockStudentApi</span>(page<span class="op">,</span> { classTeacherName<span class="op">:</span> <span class="st">&#39;&#39;</span> })<span class="op">;</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">// this test needs an empty teacher list</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">mockTeacherListApi</span>(page<span class="op">,</span> [])<span class="op">;</span></span></code></pre></div>
-<h3 id="why-this-pattern">Why This Pattern</h3>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Benefit</th>
-<th>Explanation</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>One source of truth per endpoint</strong></td>
-<td><code>baseStudentResponse</code> defines the “normal” shape once —
-every test starts from the same known-good data</td>
-</tr>
-<tr class="even">
-<td><strong>Tests stay readable</strong></td>
-<td>A test only shows <em>what’s different</em> about its scenario
-(<code>{ classTeacherName: '' }</code>), not the entire response payload
-every time</td>
-</tr>
-<tr class="odd">
-<td><strong>Consistent with the “no duplication” principle</strong></td>
-<td>Same idea as parameterized steps — one mock function, driven by
-overrides, instead of a separate mock function per scenario</td>
-</tr>
-<tr class="even">
-<td><strong>Interception logic lives in one place</strong></td>
-<td><code>route()</code>/<code>fulfill()</code> mechanics are written
-once, in <code>mocks/</code>, not repeated inline at the top of every
-spec</td>
-</tr>
-<tr class="odd">
-<td><strong>Data and logic are physically separated</strong></td>
-<td>The JSON file can be edited by anyone (even non-engineers) without
-touching the mocking mechanics</td>
-</tr>
-</tbody>
-</table>
-<h3 id="handling-multiple-api-calls-across-multiple-tests">Handling
-Multiple API Calls Across Multiple Tests</h3>
-<p>Since both mocks live in the same page-scoped file, a spec imports
-both from one place. <strong>Three tests — one amends the student API,
-another amends the teacher-list API, the third uses both as
-base:</strong></p>
-<div class="sourceCode" id="cb15"><pre
-class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">// specs/editForm.spec.ts</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { test } <span class="im">from</span> <span class="st">&#39;@playwright/test&#39;</span><span class="op">;</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { mockStudentApi<span class="op">,</span> mockTeacherListApi } <span class="im">from</span> <span class="st">&#39;../mocks/editForm/editForm.mockResponse&#39;</span><span class="op">;</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;happy path — both APIs use base response&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">mockStudentApi</span>(page)<span class="op">;</span>        <span class="co">// base, no override</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">mockTeacherListApi</span>(page)<span class="op">;</span>    <span class="co">// base, no override</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students/1/edit&#39;</span>)<span class="op">;</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...proceed with steps</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;shows error when student has no class teacher assigned&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">mockStudentApi</span>(page<span class="op">,</span> { classTeacherName<span class="op">:</span> <span class="st">&#39;&#39;</span> })<span class="op">;</span> <span class="co">// amended for this test</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">mockTeacherListApi</span>(page)<span class="op">;</span>                        <span class="co">// base — unaffected</span></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students/1/edit&#39;</span>)<span class="op">;</span></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...proceed with steps</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;teacher dropdown shows empty state when no teachers exist&#39;</span><span class="op">,</span> <span class="kw">async</span> ({ page }) <span class="kw">=&gt;</span> {</span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">mockStudentApi</span>(page)<span class="op">;</span>                <span class="co">// base — unaffected</span></span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">mockTeacherListApi</span>(page<span class="op">,</span> [])<span class="op">;</span>        <span class="co">// amended for this test</span></span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;/students/1/edit&#39;</span>)<span class="op">;</span></span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...proceed with steps</span></span>
-<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
-<p><strong>The rule this demonstrates:</strong> every test calls
-<strong>every mock the page needs</strong>, but only passes an override
-to the <em>one</em> endpoint that scenario actually cares about. The
-other endpoint(s) are called with no arguments, which falls back to the
-base response by default. This keeps each test’s intent obvious at a
-glance — the override in the test body tells you exactly what’s being
-verified, without needing to read the mock implementation.</p>
-<h3 id="which-endpoints-to-mock">Which Endpoints to Mock</h3>
-<p>Not every endpoint needs this treatment. Mock endpoints whose
-response <strong>varies by test scenario</strong> (like the student data
-above). Endpoints that return <strong>stable, non-journey-dependent
-data</strong> — e.g., a country list that’s the same regardless of which
-student or scenario is being tested — generally don’t need per-test
-mocking at all.</p>
-<h3 id="folder-structure-so-far-complete">Folder Structure So Far —
-Complete</h3>
-<p>With mocks added, this is the full, final structure:</p>
-<pre><code>tests/
-├── locators/
-│   ├── shared/
-│   │   └── header.locators.ts
-│   ├── studentList/
-│   │   └── studentList.locators.ts
-│   └── editForm/
-│       └── editForm.locators.ts
-│
-├── actions/
-│   ├── studentList/
-│   │   └── studentList.actions.ts
-│   └── editForm/
-│       └── editForm.actions.ts
-│
-├── steps/
-│   ├── studentList/
-│   │   └── selectStudent.step.ts
-│   └── editForm/
-│       ├── editStudentDetails.step.ts
-│       └── submitEditForm.step.ts
-│
-├── mocks/
-│   ├── shared/                          ← only for an endpoint genuinely used by 2+ pages
-│   ├── studentList/
-│   │   ├── studentList.mockData.json
-│   │   └── studentList.mockResponse.ts
-│   └── editForm/
-│       ├── editForm.mockData.json        ← raw base data for every endpoint this page needs
-│       └── editForm.mockResponse.ts      ← every route-mocking function this page needs (mockStudentApi, mockTeacherListApi, ...)
-│
-└── specs/
-    ├── studentList.spec.ts
-    └── editForm.spec.ts</code></pre>
-<p><strong>One thing to watch for:</strong> this only stays clean as
-long as an endpoint is exclusive to one page. If
-<code>/api/teachers</code> also turns out to be called by a different
-page later, keeping <code>mockTeacherListApi</code> inside
-<code>editForm.mockResponse.ts</code> forces that other page to either
-duplicate the function or import from Edit Form’s folder — breaking the
-same boundary we already enforce for locators. If that happens, move
-just that one mock into <code>mocks/shared/</code>, same as we do for
-shared locators.</p>
-<hr />
-<h2 id="key-rules-recap">6. Key Rules Recap</h2>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Rule</th>
-<th>Why</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Locators are pure, no logic</td>
-<td>So changing one element’s selector never requires touching test
-logic</td>
-</tr>
-<tr class="even">
-<td>Locators split shared vs. page-specific</td>
-<td>Avoids duplicating elements that appear on multiple pages</td>
-</tr>
-<tr class="odd">
-<td>Actions are page-scoped, not flow-scoped</td>
-<td>The same action is reused by every flow that touches that page — no
-duplication per journey</td>
-</tr>
-<tr class="even">
-<td>Actions use a factory pattern</td>
-<td>Locators computed once per page, no repeated instantiation</td>
-</tr>
-<tr class="odd">
-<td>Steps are parameterized, not duplicated</td>
-<td>One step handles multiple scenarios via data/options — avoids
-near-identical files</td>
-</tr>
-<tr class="even">
-<td><code>test.step()</code> lives inside the step</td>
-<td>Every consuming spec gets automatic, labeled reporting</td>
-</tr>
-<tr class="odd">
-<td>No Journey/orchestration layer</td>
-<td>The spec itself represents the flow — an extra layer added no value
-and risked breaking page-scoping</td>
-</tr>
-<tr class="even">
-<td>Folders grouped by page, not by flow</td>
-<td>The same page can belong to multiple flows — grouping by flow would
-duplicate it</td>
-</tr>
-<tr class="odd">
-<td>No hard waits</td>
-<td>Each layer uses proper condition-based waiting internally, not
-<code>waitForTimeout</code></td>
-</tr>
-<tr class="even">
-<td>No single giant helper file</td>
-<td>Locators/actions/steps must stay physically separated by page, even
-if a helper file “looks” clean from the spec</td>
-</tr>
-<tr class="odd">
-<td>Mock data is JSON, mock logic is TS</td>
-<td>Data and interception mechanics are physically separated, same as
-locators vs. actions</td>
-</tr>
-<tr class="even">
-<td>API mocks use base response + overrides</td>
-<td>One source of truth per endpoint; tests only show what’s different
-about their scenario, not a full duplicated payload</td>
-</tr>
-</tbody>
-</table>
-</body>
-</html>
+# Playwright + React Testing Best Practices
+
+This page covers four practices we've settled on for testing our React applications with Playwright: locator strategy, selective endpoint mocking, using `test.step`, and handling async React state. All examples use TypeScript with arrow functions only — no `class`, no `constructor`.
+
+## Application Used as the Example
+
+Every section below reuses the same three-page flow, so the app is described once here — no section repeats these details, it just applies them.
+
+* **Page 1 — Student List:** shows up to 5 students in a class. Clicking a student navigates to Edit Form with that student's data prefilled.
+* **Page 2 — Edit Form:** prefilled fields are `firstName`, `lastName`, `age`, `class` (dropdown), and `classTeacherName` — all mandatory. The Next button is always enabled; submitting with a missing mandatory field shows a top-of-form error banner instead of disabling the button. Navigating back to Student List and re-selecting the same student always resets the form to its original prefilled values — there's no unsaved-edit persistence.
+* **Page 3 — Thank You:** confirmation screen; no data is actually saved. The confirmation text shown varies depending on the data it receives.
+
+With that context in hand, each section below can be read on its own.
+
+---
+
+## 1. Locator Strategy
+
+Not all locators are equal. Some survive a redesign, some break the moment a class name changes. Use this priority order, highest first:
+
+* **`getByRole`** — best for accessibility & user-facing elements. Example: `page.getByRole('button', { name: 'Submit' })`
+* **`getByText`** — match visible text. Example: `page.getByText('Login')`
+* **`getByLabel`** — form inputs with labels. Example: `page.getByLabel('Email')`
+* **`getByPlaceholder`** — inputs without labels. Example: `page.getByPlaceholder('Enter email')`
+* **`getByTestId`** — stable test selectors. Example: `page.getByTestId('submit-btn')`
+* **CSS (`locator`)** — flexible, structural targeting. Example: `page.locator('.btn-primary')`
+* **XPath** — complex DOM navigation. Example: `page.locator('//div[@id="app"]')`
+
+Prefer the top of the table and only drop down when the element genuinely has no accessible role, text, or label. CSS and XPath are a last resort — they couple the test to markup structure rather than user-facing behavior.
+
+### Why follow this priority
+
+* **Resilient to change** — role, text, and label locators are tied to how a user perceives the page, not to markup. A class rename, a `div` becoming a `section`, or a styling refactor on the Edit Form doesn't break the test; only an actual change to what the user sees would.
+* **Accessibility gaps surface for free** — writing `getByRole`/`getByLabel` locators forces the app to expose real semantic roles and labels, the same signals a screen reader relies on. If a locator is awkward to write this way, that's usually a real accessibility gap in the component, caught while writing the test instead of in a separate audit.
+* **Fewer test-only hooks to maintain** — leaning on accessible attributes means `data-testid` doesn't need to be sprinkled across the codebase just to make things testable. It's reserved for the rare element with no natural role, text, or label.
+* **Tests read as documentation** — `editFormLocators(page).nextButton()` built on `getByRole('button', { name: 'Next' })` tells a reader what's being interacted with without them opening the DOM to check.
+* **Fails loudly instead of silently** — a CSS or XPath locator can quietly match the wrong element after a redesign (same class reused elsewhere), producing a test that passes without testing anything meaningful. Role- and text-based locators fail clearly when the intended element genuinely isn't there.
+
+Targeting an element by its accessible role and label survives a markup change; targeting it by a CSS class like `.first-name-input` doesn't.
+
+---
+
+## 2. Selective Endpoint Mocking
+
+### Why the test must own the mock, not borrow the application's
+
+A specific way under-mocking creeps in: while the Edit Form is being built, the real `/api/student` endpoint isn't ready yet, so the component ships with a temporary fallback so developers have something to look at:
+
+```ts
+// EditForm.tsx — a dev-time placeholder, never intended as a contract
+const student = apiResponse ?? { firstName: 'Aditi', lastName: 'Sharma', age: 10, class: 'Grade 1A' };
+```
+
+If the Playwright test never mocks `/api/student` itself and just asserts on whatever renders, it's really asserting on this fallback:
+
+```ts
+// no page.route() here — the test is unknowingly relying on the app's own placeholder
+await page.goto('/edit-form/1');
+await expect(editFormLocators(page).firstName()).toHaveValue('Aditi'); // passes, but why?
+```
+
+It passes today because the fallback happens to say `Aditi`. The test gets merged, everyone moves on.
+
+A month later, someone else is working in that same part of the app, has no idea a test is silently depending on that fallback value, and changes it to `Rohan` for their own reasons. The application is still correct — that value was never a contract. But the old test now fails, and it fails for a reason completely disconnected from any real regression: the app's internal scaffolding moved, and the test happened to be standing on it.
+
+That's the test not being independent — its result is coupled to an implementation detail nobody agreed to preserve. The fix is the same rule already stated: the test mocks the endpoint itself, explicitly, regardless of whatever fallback or placeholder exists in app code:
+
+```ts
+await mockStudentResponse(page, { firstName: 'Aditi', lastName: 'Sharma', age: 10, class: 'Grade 1A' });
+await page.goto('/edit-form/1');
+await expect(editFormLocators(page).firstName()).toHaveValue('Aditi'); // passes because of a fixture we own
+```
+
+Now the assertion is pinned to a fixture the test controls. The in-app placeholder can change or disappear the day the real endpoint ships, and this test won't notice or care.
+
+Default to mocking every endpoint a page depends on. The only exception is an endpoint that's going to return the same result every time, regardless of scenario — that one is safe to leave unmocked, since there's no scenario-specific variance it could get wrong.
+
+**Everything else must be mocked.** This includes every journey-critical endpoint — whatever produces the Thank You confirmation text, or returns a student's saved data — and it needs a fixture per scenario, because the returned value is the thing under test:
+
+```ts
+// mocks/thankYou.mock.ts
+export const mockThankYouContext = (page: Page, variant: 'updated' | 'unchanged') =>
+  page.route('**/api/confirmation', (route) =>
+    route.fulfill({
+      json: { message: variant === 'updated' ? 'Details updated' : 'No changes made' },
+    }),
+  );
+```
+
+Under-mocking a journey-critical endpoint reintroduces flakiness, because the test now depends on real backend state instead of a controlled fixture. The rule: mock everything by default; the only opt-out is an endpoint proven to always return the same result.
+
+This only covers API data. It doesn't cover inter-page context — state a preceding page would normally hand off in memory (for example, whatever the Edit Form would pass to Thank You). That's a different kind of dependency and isn't solved by `page.route()`; it needs its own handling at the page/navigation level.
+
+---
+
+## 3. Using `test.step`
+
+Wrap logical chunks of a test in `test.step()` so a run's report reads as a named, traceable story instead of a wall of raw actions. It costs nothing beyond a wrapper and pays for itself the first time a test fails in CI.
+
+Why it's worth using:
+
+* **Pinpoint failures instantly** — the HTML report highlights the exact step that failed and collapses the passing ones, so you're not scanning dozens of raw lines to find where things broke.
+* **Readable code as documentation** — step names describe intent ("Edit student details", "Submit Edit Form") in a way a PM or manual QA tester can follow, and unlike a separate doc, they can't drift out of sync with the code.
+* **Nested steps** — a macro-step like "Submit Edit Form" can contain micro-steps like "fill each mandatory field," without cluttering the top-level test.
+* **Automatic tracing** — Playwright's trace viewer and UI mode group network calls, console logs, and screenshots under the step they belong to, cutting debugging time.
+* **One robust end-to-end test beats five fragile single-purpose specs** written just to get granular reporting — `test.step` gets you that granularity inside a single spec.
+
+Where it belongs, given our steps layer: `test.step()` lives inside the step function itself, not wrapped again around the call site in the spec. That way every spec that imports the step automatically gets a named, traceable entry in the report — nobody has to remember to add the wrapper each time it's used.
+
+### What the report looks like, with and without it
+
+**Without `test.step`** — the report shows one flat, named entry per test. If it fails, you get a file, a line number, and a stack trace, but nothing tells you which part of the flow broke without reading the code:
+
+```
+✗ Edit Form shows error banner when a mandatory field is missing (1.2s)
+```
+
+**With `test.step`** — the same test reports each composed step as its own named, collapsible entry:
+
+```
+✗ Edit Form shows error banner when a mandatory field is missing (1.2s)
+  ✓ Edit student details on Edit Form (0.4s)
+  ✓ Submit Edit Form (0.5s)
+  ✗ Verify error banner is visible (0.3s)
+```
+
+Same failing test, same total time — but now the report tells you at a glance that the first two steps passed and it was specifically the error-banner assertion that broke, before you've opened a single line of code.
+
+---
+
+## 4. Handling Async / React State Updates
+
+React state changes aren't synchronous with the click or event that triggers them. The one rule that never changes: **don't perform a hard wait** (`page.waitForTimeout(...)`). Instead, pick the wait that matches what the app is actually doing — network, DOM, or navigation.
+
+### Playwright already auto-waits — so why add waits at all?
+
+Playwright has built-in auto-waiting: before running an action like `.click()` or `.fill()`, it automatically waits for the target element to be attached, visible, stable, and actually able to receive the action — no extra code needed for that. This covers actions, but it doesn't cover everything a test needs to wait on:
+
+* **Assertions aren't actions.** Auto-waiting only kicks in right before an action like `.click()`. If you're checking that the Edit Form's error banner appeared, there's no action to trigger it — you need an explicit assertion like `expect(locator).toBeVisible()`, which does its own retrying.
+* **It doesn't know about network calls.** Auto-waiting confirms the "Next" button is clickable before clicking it, but it has no idea whether the API call that click triggers has finished. If the next step depends on that response, it needs its own `waitForResponse()`.
+* **It only waits on the element you're about to act on.** If a spinner needs to disappear before some other, unrelated element becomes meaningful, auto-waiting on that other element won't wait for the spinner — that needs its own explicit wait.
+
+So auto-waiting removes the need for hard waits before actions, but the categories below still apply wherever a test is asserting, waiting on data, or waiting on an element it isn't directly interacting with.
+
+```ts
+// after clicking a student row on Student List
+await page.getByRole('button', { name: 'Aditi Sharma' }).click();
+await expect(page).toHaveURL(/\/edit-form/);
+await expect(editFormLocators(page).firstName()).toHaveValue('Aditi'); // auto-retries, no sleep needed
+```
+
+### Network-Based Waiting
+
+**`page.waitForResponse()` / `page.waitForRequest()`**
+
+Use it when:
+
+* Intercepting specific endpoints — confirming `PUT /api/student` returns `200` after submitting the Edit Form.
+* Verifying data payloads — capturing the exact JSON returned by an API to assert on its accuracy.
+* Testing file downloads/uploads — waiting for a heavy upload endpoint to finish processing before moving on.
+
+```ts
+// confirm the Edit Form's submit call actually succeeded before checking Thank You
+await Promise.all([
+  page.waitForResponse((res) => res.url().includes('/api/student') && res.status() === 200),
+  editFormLocators(page).nextButton().click(),
+]);
+```
+
+**`page.waitForLoadState('networkidle')`**
+
+Use it when:
+
+* Dashboard rendering — a page fires dozens of separate API calls to populate charts and metrics.
+* SPAs — ensuring the client-side framework has finished fetching initial background data after login.
+* Third-party scripts — waiting for fonts, tracking pixels, and chat widgets to settle so they don't cause layout shifts. Use sparingly — it's the least targeted network wait.
+
+```ts
+// e.g. a future analytics dashboard that fires many background calls on load
+await page.goto('/dashboard');
+await page.waitForLoadState('networkidle');
+```
+
+### Element & DOM-Based Waiting
+
+**`expect(locator).toBeVisible()` (web-first assertion)**
+
+Use it when:
+
+* Dynamic element injection — the Edit Form's error banner or a success notification only appears after a submit finishes.
+* Page transitions — a skeleton loader disappears and the real content is fully visible before you interact with it.
+* Lazy-loaded content — scrolling an infinite feed and waiting for the next batch of cards to load.
+
+```ts
+// wait for the error banner to appear rather than assuming it's already there
+await expect(editFormLocators(page).errorBanner()).toBeVisible();
+```
+
+**`locator.waitFor({ state: 'attached' | 'detached' | 'hidden' })`**
+
+Use it when:
+
+* Spinner disappearance — waiting for a loading spinner to become `detached` or `hidden` so it no longer blocks the UI.
+* Multi-step wizards — waiting for Step 1's elements to be fully `detached` before interacting with Step 2's inputs.
+
+```ts
+// wait for a loading spinner to leave the DOM before asserting on Thank You text
+await page.getByTestId('loading-spinner').waitFor({ state: 'detached' });
+```
+
+### Navigation & Lifecycle Waiting
+
+**`page.goto(url, { waitUntil: 'domcontentloaded' })`**
+
+Use it when:
+
+* Fast HTML parsing — you only need the raw HTML structure to immediately scrape text, ignoring images, CSS, or scripts.
+
+```ts
+// scrape the rendered student names without waiting on images/CSS
+await page.goto('/student-list', { waitUntil: 'domcontentloaded' });
+```
+
+**`page.goto(url, { waitUntil: 'load' })`**
+
+Use it when:
+
+* Standard page loading — traditional multi-page apps where you need the page, styles, and images fully loaded before acting. This is Playwright's default.
+
+```ts
+// standard navigation to Student List before interacting with any row
+await page.goto('/student-list', { waitUntil: 'load' });
+```
+
+The thing you wait on should always be one of: a UI assertion (state you expect to be true), a real request/response, or an explicit DOM/navigation lifecycle state — never an arbitrary sleep.
+
+---
+
+## Key Takeaways
+
+* Prefer `getByRole`, `getByText`, `getByLabel`, and `getByPlaceholder` over `getByTestId`, and reserve CSS/XPath selectors for cases nothing else covers.
+* Locators are pure, page-scoped factories — no actions or assertions baked in.
+* Default to mocking every endpoint; only leave unmocked the ones that always return the same result regardless of scenario.
+* Mock journey-critical endpoints per scenario, since their return value is what the test verifies.
+* Selective mocking covers API data only — inter-page context is a separate problem.
+* Wrap logical chunks of a test in `test.step()`, defined inside the step function itself, so reports stay readable and every spec gets traceable steps for free.
+* Never wait on a fixed timer; wait on a UI assertion or a real request/response.
